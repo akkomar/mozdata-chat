@@ -51,6 +51,11 @@ This guide covers deploying the Mozdata Assistant using a **single container** t
    firebase login
    ```
 
+4. **Create Firestore database** (for session persistence):
+   ```bash
+   gcloud firestore databases create --project=mozdata-chat --location=us-central1
+   ```
+
 ---
 
 ## Step 1: Configure Firebase

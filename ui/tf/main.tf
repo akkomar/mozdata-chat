@@ -73,6 +73,13 @@ resource "google_project_iam_member" "vertex_ai_access" {
   member  = "serviceAccount:${google_service_account.app.email}"
 }
 
+# Allow app to access Firestore for session persistence
+resource "google_project_iam_member" "firestore_access" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.app.email}"
+}
+
 # Cloud Run service for combined Next.js + Python app
 resource "google_cloud_run_v2_service" "app" {
   project             = var.project_id

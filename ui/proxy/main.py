@@ -20,6 +20,7 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from firebase_admin import auth as firebase_auth
+from firebase_admin import firestore
 
 load_dotenv()
 
@@ -31,6 +32,9 @@ if not FIREBASE_PROJECT_ID:
 firebase_admin.initialize_app(options={
     'projectId': FIREBASE_PROJECT_ID,
 })
+
+# Initialize Firestore for session persistence
+db = firestore.client()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -192,9 +196,43 @@ def _summarize_args(args: dict) -> str:
     return ""
 
 
+async def get_or_create_session(thread_id: str, user_id: str) -> str:
+    """
+    Get existing Agent Engine session_id for a thread, or create a new one.
+    Uses Firestore for persistence across Cloud Run instances.
+    """
+    # Check Firestore for existing mapping
+    doc_ref = db.collection("sessions").document(thread_id)
+    doc = doc_ref.get()
+
+    if doc.exists:
+        session_id = doc.to_dict().get("session_id")
+        logger.info(f"Found session for thread {thread_id}: {session_id}")
+        return session_id
+
+    # Create a new session via Agent Engine API
+    logger.info(f"Creating new session for thread {thread_id}, user {user_id}")
+    session = await agent.async_create_session(user_id=user_id)
+
+    # Extract session_id from the returned session object
+    session_id = session.get("id") or session.get("session_id")
+    if not session_id:
+        logger.error(f"Failed to get session_id from response: {session}")
+        raise ValueError("Failed to create session: no session_id returned")
+
+    # Store mapping in Firestore
+    doc_ref.set({
+        "session_id": session_id,
+        "user_id": user_id,
+    })
+    logger.info(f"Created session {session_id} for thread {thread_id}")
+    return session_id
+
+
 async def translate_agent_events(
     message: str,
     user_id: str,
+    session_id: str,
     thread_id: str,
     run_id: str,
 ) -> AsyncIterator[str]:
@@ -236,6 +274,7 @@ async def translate_agent_events(
             async for event in agent.async_stream_query(
                 message=message,
                 user_id=user_id,
+                session_id=session_id,
             ):
                 await event_queue.put(("event", event))
         except Exception as e:
@@ -383,12 +422,16 @@ async def handle_agent_request(
         # Use authenticated user's email as user_id
         user_id = user_token.get("email", "default_user")
 
+        # Get or create Agent Engine session for this thread
+        session_id = await get_or_create_session(thread_id, user_id)
+
         logger.info(f"Processing request from {user_id}: {latest_message[:80]}{'...' if len(latest_message) > 80 else ''}")
 
         return StreamingResponse(
             translate_agent_events(
                 message=latest_message,
                 user_id=user_id,
+                session_id=session_id,
                 thread_id=thread_id,
                 run_id=run_id,
             ),

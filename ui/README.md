@@ -68,13 +68,14 @@ This starts both the Next.js UI (port 3000) and the Python proxy server (port 80
             │   └── /api/copilotkit route
             │           ↓ (localhost proxy)
             └── Python FastAPI (port 8000)
-                    ↓ (authenticated requests)
-            [Vertex AI Agent Engine]
+                    ├── Session mapping ←→ [Firestore]
+                    └── Agent queries → [Vertex AI Agent Engine]
 ```
 
 **Components:**
 - **Frontend**: Next.js with CopilotKit + Firebase Auth
 - **Backend**: Python FastAPI proxy with token verification
+- **Sessions**: Firestore stores thread→session mapping for multi-turn conversations
 - **Security**: Identity Platform blocking functions + backend verification
 - **Hosting**: Firebase Hosting → Cloud Run single container
 - **Process Manager**: supervisord runs both Next.js and Python
