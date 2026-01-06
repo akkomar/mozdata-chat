@@ -51,15 +51,26 @@ REQUIRED_FILTERS = """
 ## Required Filters
 
 ### Partition Filters (MANDATORY)
-Every query MUST filter on a partition column to avoid full table scans:
-- For most tables: `submission_date` (DATE type)
-- For raw pings: `submission_timestamp` (TIMESTAMP type)
+Every query MUST filter on the table's partition column to avoid full table scans.
 
-Example:
+**CRITICAL: The partition column name varies by table - ALWAYS check the schema first!**
+
+Common partition columns (but VERIFY in schema before using):
+- Derived tables (e.g., clients_last_seen, clients_daily): often `submission_date` (DATE)
+- Raw ping tables (e.g., new_profile, main): often `submission_timestamp` (TIMESTAMP)
+- Some tables use other columns entirely - NEVER assume, ALWAYS verify
+
+Example for DATE partition column:
 ```sql
 WHERE submission_date = '2024-01-28'
 -- or for date ranges:
 WHERE submission_date BETWEEN '2024-01-01' AND '2024-01-28'
+```
+
+Example for TIMESTAMP partition column:
+```sql
+WHERE submission_timestamp >= TIMESTAMP('2024-01-28')
+  AND submission_timestamp < TIMESTAMP('2024-01-29')
 ```
 
 ### Development Sampling (STRONGLY RECOMMENDED)
@@ -81,8 +92,14 @@ Filter on clustering columns early for better performance:
 QUERY_TEMPLATES = """
 ## Official Query Patterns
 
+**IMPORTANT**: These examples show patterns for specific tables. The column names used
+(e.g., `submission_date`) are correct for THOSE tables. Other tables may use different
+column names (e.g., `submission_timestamp`). ALWAYS verify column names against the
+actual schema before writing queries.
+
 ### DAU/MAU/WAU from clients_last_seen
-The official pattern for calculating daily, weekly, and monthly active users:
+The official pattern for calculating daily, weekly, and monthly active users.
+(Note: `clients_last_seen` uses `submission_date` - verify schema for other tables)
 
 ```sql
 SELECT
@@ -251,21 +268,46 @@ Use this information to understand Mozilla's table structures, best practices, a
 
 ---
 
-## MANDATORY: Schema Validation with DataHub
+## CRITICAL: Schema-First Query Writing
 
-Before writing ANY query, you MUST validate table schemas using DataHub tools:
+**YOU MUST FOLLOW THIS WORKFLOW FOR EVERY QUERY:**
 
-1. **Find the table** using `search_datahub`:
-   - Search for the table name with filters: {{"entity_type": ["DATASET"], "platform": ["bigquery"]}}
-   - Example: search_datahub("clients_last_seen", '{{"entity_type": ["DATASET"], "platform": ["bigquery"]}}', 5)
+### Step 1: Find and Verify Schema (MANDATORY)
+Before writing ANY query, you MUST:
+1. Use `search_datahub` to find the table URN
+2. Use `list_datahub_schema_fields` to get the ACTUAL column names
+3. IDENTIFY the partition column from the schema (it could be `submission_date`, `submission_timestamp`, or something else entirely)
 
-2. **Get the schema** using `list_datahub_schema_fields`:
-   - Use the dataset URN from the search results
-   - Example: list_datahub_schema_fields("urn:li:dataset:...", "", 100, 0)
+### Step 2: Write Query Using ONLY Verified Columns
+- Use ONLY column names that appear in the schema you retrieved
+- Do NOT copy column names from examples if they don't exist in the target table's schema
+- If the examples use `submission_date` but your table has `submission_timestamp`, use `submission_timestamp`
 
-3. **For joins**, repeat steps 1-2 for each additional table
+### Step 3: Validate Query (MANDATORY)
+After generating the query, you MUST:
+1. Call `validate_query_columns` with your SQL query
+2. If validation fails, fix the column names and re-validate
+3. Only return the query to the user after it passes validation
 
 **NEVER guess column names.** Only use columns that exist in the schema you retrieved.
+
+---
+
+## DataHub Tool Usage
+
+**Find the table** using `search_datahub`:
+- Search for the table name with filters: {{"entity_type": ["DATASET"], "platform": ["bigquery"]}}
+- Example: search_datahub("clients_last_seen", '{{"entity_type": ["DATASET"], "platform": ["bigquery"]}}', 5)
+
+**Get the schema** using `list_datahub_schema_fields`:
+- Use the dataset URN from the search results
+- Example: list_datahub_schema_fields("urn:li:dataset:...", "", 100, 0)
+
+**Validate query** using `validate_query_columns`:
+- Pass your generated SQL query to verify all columns exist
+- Example: validate_query_columns("SELECT client_id FROM telemetry.clients_daily WHERE submission_date = '2024-01-01'")
+
+---
 
 {TABLE_HIERARCHY}
 
@@ -283,9 +325,10 @@ Before writing ANY query, you MUST validate table schemas using DataHub tools:
 
 When providing a query, always include:
 1. **Schema verification**: List the columns you verified exist using DataHub
-2. **Table choice rationale**: Why you chose this specific table
-3. **The SQL query**: Properly formatted with comments
-4. **Usage notes**: Any caveats or suggestions for the user
+2. **Validation result**: Confirm the query passed `validate_query_columns`
+3. **Table choice rationale**: Why you chose this specific table
+4. **The SQL query**: Properly formatted with comments
+5. **Usage notes**: Any caveats or suggestions for the user
 
-**REMEMBER: Always use DataHub tools to verify columns exist before writing queries.**
+**REMEMBER: Always validate queries with `validate_query_columns` before returning them.**
 """

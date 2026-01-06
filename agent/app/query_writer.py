@@ -26,8 +26,12 @@ import os
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
 
+from .datahub_tools import (
+    list_datahub_schema_fields,
+    search_datahub,
+    validate_query_columns,
+)
 from .query_writer_knowledge import get_query_writer_instruction
-from .datahub_tools import search_datahub, list_datahub_schema_fields
 
 # NOTE: BigQuery toolset is disabled because it requires the Agent Engine
 # service account to have bigquery.dataViewer permissions on moz-fx-data-shared-prod.
@@ -40,7 +44,7 @@ from .datahub_tools import search_datahub, list_datahub_schema_fields
 # Build tools list - include DataHub tools for schema validation
 datahub_tools = []
 if os.getenv("DATAHUB_API_TOKEN"):
-    datahub_tools = [search_datahub, list_datahub_schema_fields]
+    datahub_tools = [search_datahub, list_datahub_schema_fields, validate_query_columns]
 
 # Create the query writer agent
 # Documentation context is provided by root agent via session state.
@@ -56,9 +60,10 @@ query_writer_agent = Agent(
     - Query telemetry data with proper filters and best practices
 
     Before calling this tool, gather documentation context via retrieve_docs.
-    This agent will use DataHub to validate table schemas and column names.""",
+    This agent will use DataHub to validate table schemas and column names,
+    and validates generated queries to ensure all columns exist before returning.""",
     instruction=get_query_writer_instruction(),
-    # DataHub tools for schema validation
+    # DataHub tools for schema validation and query validation
     tools=datahub_tools,
     output_key="generated_query",
 )
