@@ -206,7 +206,7 @@ firebase deploy --only hosting --project=mozdata-chat
 
 ```bash
 # Rebuild container
-docker build -t us-central1-docker.pkg.dev/mozdata-chat/mozdata-chat/app:latest \
+docker build --platform linux/amd64 -t us-central1-docker.pkg.dev/mozdata-chat/mozdata-chat/app:latest \
   -f Dockerfile.combined .
 
 # Push new version
