@@ -1,0 +1,23 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+# GCP Project Configuration
+project_id = "your-ui-project-id"
+region     = "us-central1"
+
+# Vertex AI Agent Engine Configuration
+# These values come from your deployed agent (see agent/deployment_metadata.json after deploying)
+agent_engine_project        = "your-agent-engine-project"
+agent_engine_project_number = "123456789012"
+agent_engine_resource_id    = "1234567890123456789"
+
+# Combined Container Image (Next.js + Python)
+# Format: REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/IMAGE:TAG
+# IMPORTANT: Run terraform apply first to create Artifact Registry, THEN build/push image
+# 1. terraform apply (creates registry, Cloud Run will fail - that's OK)
+# 2. docker build -t us-central1-docker.pkg.dev/YOUR_PROJECT/YOUR_REPO/app:latest -f Dockerfile.combined .
+# 3. docker push us-central1-docker.pkg.dev/YOUR_PROJECT/YOUR_REPO/app:latest
+# 4. terraform apply (now Cloud Run deploys successfully)
+container_image = "us-central1-docker.pkg.dev/your-ui-project-id/your-repo/app:latest"
+
+# Cloud Run Service Name
+service_name = "mozdata-chat"

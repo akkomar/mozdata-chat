@@ -1,0 +1,52 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Node.js development
+.next/
+out/
+.turbo/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+README.md
+DEPLOYMENT.md
+# .env is needed for Firebase config at build time
+.env.local
+.env.development
+.env.test
+
+# Terraform
+tf/
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+
+# Functions (deployed separately)
+functions/
+
+# Docker files (not needed in container)
+Dockerfile
+Dockerfile.*
+.dockerignore
+
+# Testing
+coverage/
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts

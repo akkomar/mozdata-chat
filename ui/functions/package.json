@@ -1,0 +1,13 @@
+{
+  "name": "mozdata-chat-blocking-functions",
+  "version": "1.0.0",
+  "description": "Identity Platform blocking functions for @mozilla.com email restriction",
+  "main": "index.js",
+  "dependencies": {
+    "gcip-cloud-functions": "^0.2.0",
+    "@google-cloud/functions-framework": "^3.0.0"
+  },
+  "engines": {
+    "node": "20"
+  }
+}

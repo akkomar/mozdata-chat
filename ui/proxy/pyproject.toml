@@ -1,0 +1,14 @@
+[project]
+name = "agent-proxy"
+version = "0.1.0"
+description = "Proxy server for connecting AG-UI frontend to Vertex AI Agent Engine"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-dotenv",
+    "pydantic",
+    "google-cloud-aiplatform[agent_engines]>=1.118.0",
+    "vertexai",
+    "firebase-admin",
+]
