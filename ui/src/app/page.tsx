@@ -82,13 +82,19 @@ export default function CopilotKitPage() {
         className="h-screen flex flex-col"
       >
         {/* Header with user info and sign-out */}
-        <header className="flex justify-between items-center p-4 border-b">
-          <h1 className="text-lg font-semibold">Mozdata Assistant</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user.email}</span>
+        <header className="flex justify-between items-center px-6 py-3 bg-white border-b border-gray-200 shadow-sm">
+          <h1 className="text-lg font-semibold text-zinc-700">Mozdata Assistant</h1>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-zinc-600 flex items-center justify-center text-white text-xs font-medium">
+                {user.email?.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm text-gray-600 hidden sm:inline">{user.email}</span>
+            </div>
+            <div className="w-px h-5 bg-gray-200" />
             <button
               onClick={signOut}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
             >
               Sign out
             </button>
