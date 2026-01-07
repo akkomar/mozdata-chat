@@ -1,24 +1,146 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #18181b;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --border: #e4e4e7;
+  --muted: #71717a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #09090b;
+    --foreground: #fafafa;
+    --surface: #18181b;
+    --surface-elevated: #27272a;
+    --border: #3f3f46;
+    --muted: #a1a1aa;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body,
 html {
   height: 100%;
+}
+
+/* CopilotKit Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  /* Main chat container */
+  .copilotKitChat {
+    background: var(--surface) !important;
+  }
+
+  /* Messages area */
+  .copilotKitMessages {
+    background: transparent !important;
+  }
+
+  /* User messages */
+  .copilotKitUserMessage {
+    background: var(--surface-elevated) !important;
+    color: var(--foreground) !important;
+    border: 1px solid var(--border) !important;
+  }
+
+  /* Assistant messages */
+  .copilotKitAssistantMessage {
+    background: transparent !important;
+    color: var(--foreground) !important;
+  }
+
+  /* Input area and container */
+  .copilotKitInputContainer,
+  .poweredByContainer {
+    background: var(--surface) !important;
+  }
+
+  .copilotKitInput {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+  }
+
+  .copilotKitInput textarea {
+    background: var(--surface) !important;
+    color: var(--foreground) !important;
+  }
+
+  .copilotKitInput textarea::placeholder {
+    color: var(--muted) !important;
+  }
+
+  /* Response buttons */
+  .copilotKitResponseButton {
+    background: var(--surface-elevated) !important;
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
+  }
+
+  .copilotKitResponseButton:hover {
+    background: #3f3f46 !important;
+  }
+
+  /* Suggestion buttons */
+  .suggestion {
+    background: var(--surface-elevated) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--foreground) !important;
+  }
+
+  .suggestion:hover {
+    background: #3f3f46 !important;
+    border-color: #52525b !important;
+  }
+
+  /* Header inside chat */
+  .copilotKitHeader {
+    background: var(--surface) !important;
+    border-color: var(--border) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* Activity indicator */
+  .copilotKitActivityIndicator {
+    color: var(--muted) !important;
+  }
+
+  /* Markdown content */
+  .copilotKitMarkdown {
+    color: var(--foreground) !important;
+  }
+
+  .copilotKitMarkdown code {
+    background: var(--surface-elevated) !important;
+    border: 1px solid var(--border) !important;
+  }
+
+  .copilotKitMarkdown pre {
+    background: #1c1c1e !important;
+    border: 1px solid var(--border) !important;
+  }
+
+  /* Icons and action buttons */
+  .copilotKitChat button svg {
+    color: var(--muted) !important;
+  }
+
+  .copilotKitChat button:hover svg {
+    color: var(--foreground) !important;
+  }
+
+  /* Powered by footer */
+  .poweredBy,
+  p.poweredBy,
+  .copilotKitChat [class*="poweredBy"] {
+    background: transparent !important;
+    color: var(--muted) !important;
+    opacity: 0.6;
+  }
 }
