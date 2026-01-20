@@ -51,13 +51,22 @@ if not PROJECT_ID or not RESOURCE_ID:
         "Copy .env.example to .env and fill in your values."
     )
 
-# Initialize Vertex AI client
+# Initialize Vertex AI client (lazy agent initialization to avoid startup rate limiting)
 logger.info(f"Initializing Vertex AI client for project {PROJECT_ID}, location {LOCATION}")
 client = vertexai.Client(project=PROJECT_ID, location=LOCATION)
-agent = client.agent_engines.get(
-    name=f"projects/{PROJECT_ID}/locations/{LOCATION}/reasoningEngines/{RESOURCE_ID}"
-)
-logger.info(f"Connected to Agent Engine: {RESOURCE_ID}")
+_agent = None  # Lazy-initialized on first request
+
+
+def get_agent():
+    """Get the agent engine, initializing lazily on first call."""
+    global _agent
+    if _agent is None:
+        logger.info(f"Fetching Agent Engine: {RESOURCE_ID}")
+        _agent = client.agent_engines.get(
+            name=f"projects/{PROJECT_ID}/locations/{LOCATION}/reasoningEngines/{RESOURCE_ID}"
+        )
+        logger.info(f"Connected to Agent Engine: {RESOURCE_ID}")
+    return _agent
 
 app = FastAPI(title="Agent Engine Proxy")
 
@@ -212,7 +221,7 @@ async def get_or_create_session(thread_id: str, user_id: str) -> str:
 
     # Create a new session via Agent Engine API
     logger.info(f"Creating new session for thread {thread_id}, user {user_id}")
-    session = await agent.async_create_session(user_id=user_id)
+    session = await get_agent().async_create_session(user_id=user_id)
 
     # Extract session_id from the returned session object
     session_id = session.get("id") or session.get("session_id")
@@ -271,7 +280,7 @@ async def translate_agent_events(
     async def agent_stream_task():
         """Stream events from Agent Engine into the queue."""
         try:
-            async for event in agent.async_stream_query(
+            async for event in get_agent().async_stream_query(
                 message=message,
                 user_id=user_id,
                 session_id=session_id,
