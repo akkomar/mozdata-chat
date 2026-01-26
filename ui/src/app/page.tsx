@@ -4,12 +4,19 @@ import { CopilotKitCSSProperties, CopilotChat } from "@copilotkit/react-ui";
 import { useAuth } from "@/components/AuthProvider";
 import { CopilotKitProvider } from "@/components/CopilotKitProvider";
 import { ToolRenderer } from "@/components/ToolRenderer";
+import { BackendLoadingScreen } from "@/components/BackendLoadingScreen";
+import { useBackendReady } from "@/hooks/useBackendReady";
 
 export default function CopilotKitPage() {
   const { user, loading, signIn, signOut } = useAuth();
   const themeColor = "#52525b"; // zinc-600 - warmer than slate
 
-  // Show loading state
+  // Only start polling for backend health when user is authenticated
+  const { isReady, error, attemptCount, retry } = useBackendReady({
+    enabled: !loading && !!user,
+  });
+
+  // State 1: Auth loading
   if (loading) {
     return (
       <div
@@ -23,7 +30,7 @@ export default function CopilotKitPage() {
     );
   }
 
-  // Show sign-in page if not authenticated
+  // State 2: Not authenticated - show sign-in page
   if (!user) {
     return (
       <div
@@ -70,7 +77,18 @@ export default function CopilotKitPage() {
     );
   }
 
-  // Show main app for authenticated users - wrap with CopilotKitProvider
+  // State 3: Backend not ready - show loading screen
+  if (!isReady) {
+    return (
+      <BackendLoadingScreen
+        attemptCount={attemptCount}
+        error={error}
+        onRetry={retry}
+      />
+    );
+  }
+
+  // State 4: Ready - show main app with CopilotKitProvider
   return (
     <CopilotKitProvider>
       {/* ToolRenderer captures all tool calls and renders them in collapsible format */}

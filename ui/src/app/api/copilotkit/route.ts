@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'; // Disable caching for streaming
 const serviceAdapter = new ExperimentalEmptyAdapter();
 
 // Helper to wait for backend to be ready (handles cold start race condition)
-// Backend can take 30-60 seconds to start on cold start (loading agent, etc.)
+// This is a safety net - frontend now handles the primary wait via health polling
 async function waitForBackend(url: string, maxRetries = 60, delayMs = 1000): Promise<boolean> {
   console.log("Waiting for backend to be ready...");
   for (let i = 0; i < maxRetries; i++) {
