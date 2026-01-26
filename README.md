@@ -1,112 +1,51 @@
 # Mozdata Chat
 
-A full-stack AI assistant for exploring Mozilla's data ecosystem, built with Google's Agent Development Kit (ADK) and a CopilotKit-based chat interface.
+> **Note:** This is an experimental proof of concept, do not use.
 
-## Overview
+Chat interface for exploring Mozilla's data ecosystem. Ask questions about BigQuery tables, Glean metrics, Looker dashboards, or telemetry pipelines and get answers grounded in [docs.telemetry.mozilla.org](https://docs.telemetry.mozilla.org) and live metadata from [DataHub](https://mozilla.acryl.io).
 
-Mozdata Chat helps Mozilla employees explore and understand:
-- BigQuery datasets and tables
-- Glean SDK metrics and telemetry
-- Looker dashboards and explores
-- Data pipelines and ETL processes
-- Mozilla data documentation
+## Why This Exists
 
-The system consists of two main components:
-- **Agent** (`agent/`): Backend AI agent deployed on Vertex AI Agent Engine
-- **UI** (`ui/`): CopilotKit chat interface with Firebase Authentication
+Mozilla's data documentation is scattered and dense. This tool lets you ask questions in plain English instead of hunting through docs or clicking around DataHub.
+
+Built with Google's [Agent Development Kit](https://google.github.io/adk-docs/) and deployed on Vertex AI Agent Engine.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              User (Browser)                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         ui/ - Chat Interface                                 │
-│  ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐    │
-│  │   Next.js UI    │───▶│  /api/copilotkit │───▶│   Python Proxy      │    │
-│  │   + Firebase    │    │   (AG-UI Proto)  │    │   (Token Verify)    │    │
-│  │   Auth          │    │                  │    │                     │    │
-│  └─────────────────┘    └──────────────────┘    └──────────┬──────────┘    │
-└─────────────────────────────────────────────────────────────┼───────────────┘
-                                                              │
-                                                              ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    agent/ - Vertex AI Agent Engine                           │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                        Mozdata Agent (ADK)                          │    │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌───────────┐  │    │
-│  │  │  DataHub    │  │  BigQuery   │  │  RAG (Data  │  │  Query    │  │    │
-│  │  │  MCP Server │  │  Toolset    │  │  Docs)      │  │  Writer   │  │    │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └───────────┘  │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
+Browser → Next.js (Firebase Auth) → Python Proxy → Vertex AI Agent Engine
+                                                            ↓
+                                         ADK Agent with RAG, DataHub MCP, BigQuery tools
 ```
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
+**Prerequisites:** Node.js 18+, Python 3.10+ with `uv`, `gcloud` CLI
 
-- Google Cloud account with access to the agent project
-- `gcloud` CLI installed and authenticated
-- Node.js 18+ (for UI)
-- Python 3.10+ with `uv` (for agent)
+```bash
+# Run the UI (connects to deployed agent)
+cd ui
+cp proxy/.env.example proxy/.env   # add your agent endpoint
+pnpm install && pnpm dev           # http://localhost:3000
 
-### Quick Start (Development)
-
-1. **Deploy or connect to the Agent**:
-   ```bash
-   cd agent
-   # See agent/README.md for deployment instructions
-   ```
-
-2. **Run the UI locally**:
-   ```bash
-   cd ui
-   cp proxy/.env.example proxy/.env
-   # Edit proxy/.env with your Agent Engine configuration
-
-   pnpm install
-   pnpm dev
-   ```
-
-3. **Open http://localhost:3000** and sign in with your @mozilla.com account.
-
-## Project Structure
-
-```
-mozdata-chat/
-├── agent/                    # Backend AI agent (ADK)
-│   ├── app/                  # Agent code
-│   │   ├── agent.py          # Root agent definition
-│   │   ├── query_writer.py   # SQL query generation sub-agent
-│   │   └── tools/            # Custom tools
-│   ├── data_ingestion/       # RAG pipeline for data-docs
-│   └── README.md             # Agent setup & deployment guide
-│
-├── ui/                       # Frontend chat interface
-│   ├── src/                  # Next.js application
-│   ├── proxy/                # Python proxy for Agent Engine
-│   ├── tf/                   # Terraform for UI deployment
-│   └── README.md             # UI setup & deployment guide
-│
-└── README.md                 # This file
+# Or run the agent locally
+cd agent
+make install && make playground    # http://localhost:8501
 ```
 
-## Documentation
+Sign in with your @mozilla.com account.
 
-- **Agent Setup**: See [agent/README.md](./agent/README.md)
-- **UI Deployment**: See [ui/README.md](./ui/README.md) and [ui/DEPLOY.md](./ui/DEPLOY.md)
-- **Mozilla Data Docs**: https://docs.telemetry.mozilla.org
+## Project Layout
+
+| Directory | What's There |
+|-----------|--------------|
+| `agent/`  | ADK agent, DataHub tools, RAG ingestion pipeline. See [agent/README.md](./agent/README.md) |
+| `ui/`     | Next.js chat UI, FastAPI proxy, Terraform. See [ui/README.md](./ui/README.md) |
 
 ## Security
 
-- **Authentication**: Firebase Authentication restricted to @mozilla.com accounts
-- **Authorization**: Identity Platform blocking functions prevent non-Mozilla sign-ups
-- **Token Verification**: Backend proxy validates Firebase ID tokens on every request
+Auth is Firebase + Identity Platform, restricted to @mozilla.com accounts. The proxy verifies ID tokens on every request.
 
-## Contributing
+## Questions?
 
-This is an internal Mozilla project. For questions or contributions, contact the Data Engineering team.
+Internal Mozilla project. Ping the Data Engineering team.
