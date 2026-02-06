@@ -5,11 +5,10 @@ This module provides retriever and compressor instances for RAG functionality,
 using Vertex AI Search's native embeddings and ranking capabilities.
 """
 
-import os
-
 from unittest.mock import MagicMock
-from langchain_google_community.vertex_rank import VertexAIRank
+
 from langchain_google_community import VertexAISearchRetriever
+from langchain_google_community.vertex_rank import VertexAIRank
 
 
 def get_retriever(
