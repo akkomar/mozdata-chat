@@ -27,7 +27,8 @@ LLM_LOCATION = "global"
 LOCATION = "us-central1"
 LLM = "gemini-3-flash-preview"
 
-credentials, project_id = google.auth.default()
+credentials, default_project_id = google.auth.default()
+project_id = os.getenv("GOOGLE_CLOUD_PROJECT", default_project_id)
 os.environ["GOOGLE_CLOUD_PROJECT"] = project_id
 os.environ["GOOGLE_CLOUD_LOCATION"] = LLM_LOCATION
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"

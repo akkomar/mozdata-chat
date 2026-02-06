@@ -71,7 +71,8 @@ data-ingestion:
 # Run unit and integration tests
 test:
 	uv sync --dev
-	uv run pytest tests/unit && uv run pytest tests/integration
+	GOOGLE_CLOUD_PROJECT=akomar-adk-test uv run pytest tests/unit && \
+	GOOGLE_CLOUD_PROJECT=akomar-adk-test uv run pytest tests/integration
 
 # Run code quality checks (codespell, ruff, mypy)
 lint:
