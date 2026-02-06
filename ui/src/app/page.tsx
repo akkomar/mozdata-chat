@@ -137,6 +137,10 @@ export default function CopilotKitPage() {
                   title: "Write a query",
                   message: "Write a query for Firefox Android DAU by country",
                 },
+                {
+                  title: "Search metrics",
+                  message: "What metrics does Firefox Desktop collect about search?",
+                },
               ]}
               className="h-full"
             />
