@@ -48,4 +48,4 @@ Auth is Firebase + Identity Platform, restricted to @mozilla.com accounts. The p
 
 ## Questions?
 
-Internal Mozilla project. Ping the Data Engineering team.
+Ping :akomar.

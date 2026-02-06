@@ -73,6 +73,11 @@ gcloud config set project <your-dev-project-id>
 make deploy
 ```
 
+After deployment, the script prints a **Console Playground URL** you can use to interact with the deployed agent directly in the GCP console. The current dev deployment playground is at:
+
+https://console.cloud.google.com/vertex-ai/agents/locations/us-central1/agent-engines/5702846855390429184/playground?project=akomar-adk-test
+
+The playground lets you test conversations, inspect traces, and debug tool calls against the live agent without needing the UI.
 
 When ready for production deployment with CI/CD pipelines and Terraform infrastructure, run `uvx agent-starter-pack enhance` to add these capabilities.
 
