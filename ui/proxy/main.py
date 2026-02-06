@@ -255,16 +255,10 @@ async def translate_agent_events(
 
     message_id = str(uuid.uuid4())
     tool_call_counter = 0  # For generating unique tool call IDs
+    text_message_started = False  # Defer TEXT_MESSAGE_START until first text content
 
     # Emit RUN_STARTED event
     yield create_sse_event("RUN_STARTED", threadId=thread_id, runId=run_id)
-
-    # Emit TEXT_MESSAGE_START event
-    yield create_sse_event(
-        "TEXT_MESSAGE_START",
-        messageId=message_id,
-        role="assistant",
-    )
 
     # Use a queue to handle both agent events and heartbeats
     event_queue: asyncio.Queue = asyncio.Queue()
@@ -308,6 +302,13 @@ async def translate_agent_events(
 
             if event_type == "error":
                 logger.error(f"Error streaming from Agent Engine: {event_data}")
+                if not text_message_started:
+                    yield create_sse_event(
+                        "TEXT_MESSAGE_START",
+                        messageId=message_id,
+                        role="assistant",
+                    )
+                    text_message_started = True
                 yield create_sse_event(
                     "TEXT_MESSAGE_CONTENT",
                     messageId=message_id,
@@ -323,6 +324,15 @@ async def translate_agent_events(
                 # Check for text content
                 text = get_part_attr(part, "text")
                 if text:
+                    # Start text message on first text content, so tool
+                    # calls emitted earlier appear above the response.
+                    if not text_message_started:
+                        yield create_sse_event(
+                            "TEXT_MESSAGE_START",
+                            messageId=message_id,
+                            role="assistant",
+                        )
+                        text_message_started = True
                     yield create_sse_event(
                         "TEXT_MESSAGE_CONTENT",
                         messageId=message_id,
@@ -378,7 +388,14 @@ async def translate_agent_events(
         except asyncio.CancelledError:
             pass
 
-    # Emit TEXT_MESSAGE_END event
+    # Ensure text message is properly opened and closed.
+    # If no text was ever emitted (edge case), start an empty message.
+    if not text_message_started:
+        yield create_sse_event(
+            "TEXT_MESSAGE_START",
+            messageId=message_id,
+            role="assistant",
+        )
     yield create_sse_event(
         "TEXT_MESSAGE_END",
         messageId=message_id,
